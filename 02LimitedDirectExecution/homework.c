@@ -32,17 +32,71 @@ is what you’re looking for. By ensuring both processes are on the same
 processor, you are making sure to measure the cost of the OS stopping
 one process and restoring another on the same CPU. */
 
+#include <assert.h>
+#include <stdio.h>
+#include <sys/time.h>
+
+const unsigned int PRECISION_TEST_SIZE = 10;
+
+void test_timeofday_precision(){
+  struct timeval tv[PRECISION_TEST_SIZE];
+  assert(gettimeofday(&tv[0], NULL) == 0);
+  assert(gettimeofday(&tv[1], NULL) == 0);  
+  assert(gettimeofday(&tv[2], NULL) == 0);
+  assert(gettimeofday(&tv[3], NULL) == 0);  
+  assert(gettimeofday(&tv[4], NULL) == 0);
+  assert(gettimeofday(&tv[5], NULL) == 0);  
+  assert(gettimeofday(&tv[6], NULL) == 0);
+  assert(gettimeofday(&tv[7], NULL) == 0);  
+  assert(gettimeofday(&tv[8], NULL) == 0);
+  assert(gettimeofday(&tv[9], NULL) == 0);  
+
+  for (unsigned int i = 0; i < PRECISION_TEST_SIZE; i++){
+    printf("iteration %d: %ld %ld\n", i, tv[i].tv_sec, tv[i].tv_usec);
+  }
+
+//  gettimeofday is Very precise in my machine!
+/* iteration 0: 1574219904 689292 */
+/* iteration 1: 1574219904 689292 */
+/* iteration 2: 1574219904 689292 */
+/* iteration 3: 1574219904 689292 */
+/* iteration 4: 1574219904 689292 */
+/* iteration 5: 1574219904 689292 */
+/* iteration 6: 1574219904 689292 */
+/* iteration 7: 1574219904 689292 */
+/* iteration 8: 1574219904 689292 */
+/* iteration 9: 1574219904 689292 */
+
+  // it should never take more than 1 microsecond.
+  long int timeTaken = (tv[9].tv_sec * 1000000 + tv[9].tv_usec) - (tv[0].tv_sec * 1000000 + tv[0].tv_usec);
+  assert( timeTaken < 2);
+  /* // it should extremely unlikely that it fails this test below. */
+  /* // if it fails, it should pass the next run. */
+  /* assert( timeTaken < 1);   */
+
+}
 // measure the costs of a system call 
 void measure_system_call(){
-
+  // measure how long it takes to execute printf("hello world!\n")
+  printf("Measuring system call cost\n");
+  long int timeTaken = 0; // in us
+  struct timeval tv[2];
+  assert(gettimeofday(&tv[0], NULL) == 0);
+  printf("hello world!\n");
+  assert(gettimeofday(&tv[1], NULL) == 0);  
+  printf("Start time: %ld %ld\n", tv[0].tv_sec, tv[0].tv_usec);
+  printf("End time  : %ld %ld\n", tv[1].tv_sec, tv[1].tv_usec);  
+  timeTaken = (tv[1].tv_sec * 1000000 + tv[1].tv_usec) - (tv[0].tv_sec * 1000000 + tv[0].tv_usec);  
+  printf("Time taken: %ld us\n", timeTaken);
 }
 
 // measure the costs of context switch.
 void measure_context_switch(){
-
+  printf("Measuring context switch cost\n");
 }
 
 int main(void){
+  test_timeofday_precision();
   measure_system_call();
   measure_context_switch();  
 }
