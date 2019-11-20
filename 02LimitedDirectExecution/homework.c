@@ -1,3 +1,4 @@
+#define _GNU_SOURCE  
 /***
 In this homework, you’ll measure the costs of a system call and context
 switch. Measuring the cost of a system call is relatively easy. For example,
@@ -13,7 +14,10 @@ test you’ll have to run in order to get a good measurement result. If
 gettimeofday() is not precise enough for you, you might look into
 using the rdtsc instruction available on x86 machines.
 Measuring the cost of a context switch is a little trickier. The lmbench
-benchmark does so by running two processes on a single CPU, and setting up two UNIX pipes between them; a pipe is just one of many ways
+benchmark does so by running two processes on a single CPU, and
+setting up two UNIX pipes between them; a pipe is just one of many
+ways
+
 processes in a UNIX system can communicate with one another. The first
 process then issues a write to the first pipe, and waits for a read on the
 second; upon seeing the first process waiting for something to read from
@@ -27,15 +31,20 @@ can try to re-create something similar here, using pipes, or perhaps some
 other communication mechanism such as UNIX sockets.
 One difficulty in measuring context-switch cost arises in systems with
 more than one CPU; what you need to do on such a system is ensure that
-your context-switching processes are located on the same processor. Fortunately, most operating systems have calls to bind a process to a particular processor; on Linux, for example, the sched setaffinity() call
-is what you’re looking for. By ensuring both processes are on the same
+your context-switching processes are located on the same
+processor. Fortunately, most operating systems have calls to bind a
+process to a particular processor; on Linux, for example, the sched
+setaffinity() call is what you’re looking for. By ensuring both processes are on the same
 processor, you are making sure to measure the cost of the OS stopping
 one process and restoring another on the same CPU. */
-
 #include <assert.h>
+#include <assert.h>
+#include <sched.h>
+#include <sched.h>
 #include <stdio.h>
 #include <sys/time.h>
-
+#include <sys/wait.h>
+#include <unistd.h>
 const unsigned int PRECISION_TEST_SIZE = 10;
 
 void test_timeofday_precision(){
@@ -90,9 +99,30 @@ void measure_system_call(){
   printf("Time taken: %ld us\n", timeTaken);
 }
 
+// Create 2 processes on the same CPU using setaffinity()
+void run_process_on_one_cpu(cpu_set_t * cpu_set){
+    assert(0 ==  sched_getaffinity(getpid(), sizeof(cpu_set_t), cpu_set));
+    for (int i=1; i<CPU_COUNT(cpu_set); i++)
+      CPU_CLR(i,cpu_set);
+    assert(0 ==  sched_setaffinity(getpid(), sizeof(cpu_set_t), cpu_set));
+    assert(CPU_COUNT(cpu_set) == 1);
+    assert(CPU_ISSET(0,cpu_set));
+}
+
 // measure the costs of context switch.
 void measure_context_switch(){
-  printf("Measuring context switch cost\n");
+  int pid;
+  cpu_set_t cpu_set;
+  run_process_on_one_cpu(&cpu_set);
+  pid = fork();
+  if (pid == 0){ // child process
+  }else{
+    wait(NULL);
+  }
+  //TODO create 2 pipes : pipe12 and pipe21
+  //TODO P1 writes to pipe12 while P2 read pipe12
+  //TODO P2 writes to pipe21 while P1 read pipe21
+  //TODO add timestamp recording at suitable places. How?
 }
 
 int main(void){
