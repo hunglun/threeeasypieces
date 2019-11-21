@@ -38,15 +38,14 @@ setaffinity() call is what you’re looking for. By ensuring both processes are 
 processor, you are making sure to measure the cost of the OS stopping
 one process and restoring another on the same CPU. */
 #include <assert.h>
-#include <assert.h>
-#include <sched.h>
 #include <sched.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
 const unsigned int PRECISION_TEST_SIZE = 10;
-
+int pipefd_alpha[2]; // 0 :  read, 1: write
+int pipefd_beta[2]; // 0 :  read, 1: write
 void test_timeofday_precision(){
   struct timeval tv[PRECISION_TEST_SIZE];
   assert(gettimeofday(&tv[0], NULL) == 0);
@@ -113,16 +112,69 @@ void run_process_on_one_cpu(cpu_set_t * cpu_set){
 void measure_context_switch(){
   int pid;
   cpu_set_t cpu_set;
+  char buf_alpha[6];
+  char buf_beta[6];
+  struct timeval tv[3];  
   run_process_on_one_cpu(&cpu_set);
+
+  // Create 2 pipes
+  pipe(pipefd_alpha);
+  printf("Create pipes: %d , %d\n", pipefd_alpha[0], pipefd_alpha[1]);  
+  pipe(pipefd_beta);
+  printf("Create pipes: %d , %d\n", pipefd_beta[0], pipefd_beta[1]);    
+  
+  buf_alpha[5] = (char) 0 ; // null terminator for string
+  buf_beta[5] = (char) 0 ; // null terminator for string
+  
   pid = fork();
   if (pid == 0){ // child process
+    // child writes to pipe_alpha while P2 read pipe_alpha
+    // Event 2: 208
+    assert(gettimeofday(&tv[0], NULL) == 0);
+    write(pipefd_alpha[1],"hello",5);
+    // Event 5: 251
+    assert(gettimeofday(&tv[1], NULL) == 0);
+    read(pipefd_beta[0],buf_beta,5);
+    // Event 6: 253
+    assert(gettimeofday(&tv[2], NULL) == 0);
+
+    printf("Read from beta pipe: %s\n",buf_beta);
+    for(int i=0; i<3; i++){
+      printf("Child Timestamp %d   : %ld %ld\n", i+1, tv[i].tv_sec, tv[i].tv_usec);
+    }
+    write(pipefd_alpha[1],&tv[1].tv_usec,8);
+
+     
+
+    
   }else{
-    wait(NULL);
+    // parent writes to pipe beta while child read pipe beta
+    // Event 1 :  185
+    assert(gettimeofday(&tv[0], NULL) == 0);    
+    read(pipefd_alpha[0],buf_alpha,5);
+    // Event 3 :  220
+    assert(gettimeofday(&tv[1], NULL) == 0);          
+    write(pipefd_beta[1],"world",5);
+    // Event 4 :  221
+    assert(gettimeofday(&tv[2], NULL) == 0);
+    wait(NULL); // wait for child process
+    
+    printf("Read from alpha pipe: %s\n",buf_alpha);
+
+    //Note:  the time difference between timestamp 3 and 4 is interesting:
+    // let's use it to compute the context switch time  
+
+    for(int i=0; i<3; i++){
+      printf("Parent Timestamp %d  : %ld %ld\n", i+1, tv[i].tv_sec, tv[i].tv_usec);
+    }
+
+    long int ct_cost = 0;
+    long int child_second_tv_usec = 0;
+    read(pipefd_alpha[0],&child_second_tv_usec,8);
+    ct_cost = child_second_tv_usec - tv[2].tv_usec;
+    printf("\nTime taken for context switch: %ld us\n", ct_cost);
   }
-  //TODO create 2 pipes : pipe12 and pipe21
-  //TODO P1 writes to pipe12 while P2 read pipe12
-  //TODO P2 writes to pipe21 while P1 read pipe21
-  //TODO add timestamp recording at suitable places. How?
+
 }
 
 int main(void){
