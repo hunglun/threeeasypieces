@@ -1,0 +1,94 @@
+* DONE Compute the response time and turnaround time when runningthree jobs of length 200 with the SJF and FIFO schedulers.
+  CLOSED: [2019-11-23 Sab 07:22]
+  CLOCK: [2019-11-23 Sab 07:15]--[2019-11-23 Sab 07:22] =>  0:07
+./scheduler.py -p SJF -j 3 -l 200,200,200
+./scheduler.py -p FIFO -j 3 -l 200,200,200
+
+| FIFO  | Response Time | Turnaround Time |
+|-------+---------------+-----------------|
+| Job 0 |             0 |             200 |
+| Job 1 |           200 |             400 |
+| Job 2 |           400 |             600 |
+|-------+---------------+-----------------|
+| Job   |           200 |             400 |
+#+TBLFM: @5=vmean(@2..@4)
+
+| SJF   | Response Time | Turnaround Time |
+|-------+---------------+-----------------|
+| Job 0 |             0 |             200 |
+| Job 1 |           200 |             400 |
+| Job 2 |           400 |             600 |
+|-------+---------------+-----------------|
+| Job   |           200 |             400 |
+#+TBLFM: @5=vmean(@2..@4)
+
+* DONE Now do the same but with jobs of different lengths: 100, 200, and 300
+  CLOSED: [2019-11-23 Sab 07:26]
+  CLOCK: [2019-11-23 Sab 07:23]--[2019-11-23 Sab 07:26] =>  0:03
+| FIFO  | Response Time | Turnaround Time |
+|-------+---------------+-----------------|
+| Job 0 |             0 |             100 |
+| Job 1 |           100 |             300 |
+| Job 2 |           300 |             600 |
+|-------+---------------+-----------------|
+| Job   |     133.33333 |       333.33333 |
+#+TBLFM: @5=vmean(@2..@4)
+
+| SJF   | Response Time | Turnaround Time |
+|-------+---------------+-----------------|
+| Job 0 |             0 |             100 |
+| Job 1 |           100 |             300 |
+| Job 2 |           300 |             600 |
+|-------+---------------+-----------------|
+| Job   |     133.33333 |       333.33333 |
+#+TBLFM: @5=vmean(@2..@4)
+
+
+* DONE Now do the same, but also with the RR scheduler and a time-sliceof 1.
+  CLOSED: [2019-11-23 Sab 07:36]
+| RR    | Response Time | Turnaround Time |
+|-------+---------------+-----------------|
+| Job 0 |             0 |             298 |
+| Job 1 |             1 |             499 |
+| Job 2 |             2 |             600 |
+|-------+---------------+-----------------|
+| Job   |             1 |       465.66667 |
+#+TBLFM: @5=vmean(@2..@4)
+What is the formula to find out the turnaround time for RR?
+
+* DONE For what types of workloads does SJF deliver the same turnaroundtimes as FIFO?
+  CLOSED: [2019-11-23 Sab 07:37]
+  CLOCK: [2019-11-23 Sab 07:36]--[2019-11-23 Sab 07:37] =>  0:01
+job with equal or increasing workload
+
+* DONE For what types of workloads and quantum lengths does SJF deliver the same response times as RR?
+  CLOSED: [2019-11-23 Sab 07:40]
+
+workload =< quantum length
+
+* DONE What happens to response time with SJF as job lengths increase? Can you use the simulator to demonstrate the trend?
+  CLOSED: [2019-11-23 Sab 07:43]
+  CLOCK: [2019-11-23 Sab 07:40]--[2019-11-23 Sab 07:43] =>  0:03
+
+
+increase work lenght by 100%, what is the increase in response time?
+: ./scheduler.py -p SJF -j 3 -l 10,20,30 -c
+: ./scheduler.py -p SJF -j 3 -l 20,40,60 -c
+
+Average response increases by 100% too:
+:   Average -- Response: 13.33  Turnaround 33.33  Wait 13.33
+:   Average -- Response: 26.67  Turnaround 66.67  Wait 26.67
+
+* DONE What happens to response time with RR as quantum lengths increase? Can you write an equation that gives the worst-case response time, given N jobs?
+  CLOSED: [2019-11-23 Sab 07:47]
+  CLOCK: [2019-11-23 Sab 07:43]--[2019-11-23 Sab 07:47] =>  0:04
+
+Response time of course increases too. 
+
+Equation to compute the worst case response time
+: (N-1)*quantum
+
+For example,
+: ./scheduler.py -p RR -j 3 -l 10,20,30 -c
+
+Expected Worst-case response time is 2
