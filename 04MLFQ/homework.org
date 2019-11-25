@@ -1,0 +1,70 @@
+
+1. Run a few randomly-generated problems with just two jobs and
+two queues; compute the MLFQ execution trace for each. Make
+your life easier by limiting the length of each job and turning off
+I/Os.
+
+Answer:
+
+| time |                 |
+|------+-----------------|
+|    0 | job 0           |
+|    1 | job 0           |
+|    7 | job 0           |
+|    8 | job 0 completed |
+|    8 | job 1           |
+|   10 | job 1           |
+|   11 | job 1           |
+|   12 | job 1 completed |
+|      |                 |
+
+Response time
+job 0 : 0
+job 1 : 8
+
+Turnaround time
+job 0 : 8
+job 1 : 12
+
+: ./mlfq.py -l 0,8,0:0,4,0 -n 2  -c
+
+2. How would you run the scheduler to reproduce each of the exam-
+ples in the chapter?
+
+2a. A single long running job, 3 queues, time slice 10ms, 
+: ./mlfq.py -l 0,200,0 -n 3  -c
+
+2b. Add a short job, 20ms runtime, 
+: ./mlfq.py -l 0,200,0:100,20,0 -n 3  -c
+
+2c. Add a short interactive job, 20ms runtime, 
+: ./mlfq.py -l 0,200,0:50,25,1 -n 3  -c
+
+2d. CPU intensive job starved by several interactive jobs
+: ./mlfq.py -l 0,200,0:100,50,1:100,50,1 -n 3 -q 2 -c -S -i 1
+
+2e. boost CPU intensive job, that is otherwise starved by interactive jobs
+: ./mlfq.py -l 0,200,0:100,50,1:100,50,1 -n 3 -q 2 -c -S -i 1 -B 10
+
+3. How would you configure the scheduler parameters to behave just
+like a round-robin scheduler?
+: ./mlfq.py -l 0,100,0:0,100,0:0,100,0 -a 0 -c
+
+4. Craft a workload with two jobs and scheduler parameters so that
+one job takes advantage of the older Rules 4a and 4b (turned on
+with the -S flag) to game the scheduler and obtain 99% of the CPU
+over a particular time interval.
+: ./mlfq.py -l 0,100,9:0,100,0 -S -c -i 0
+
+5. Given a system with a quantum length of 10 ms in its highest queue,
+how often would you have to boost jobs back to the highest priority
+level (with the -B flag) in order to guarantee that a single long-
+running (and potentially-starving) job gets at least 5% of the CPU?
+:  ./mlfq.py -l 0,1000,9:0,1000,0 -S -i 0 -B 200  -a 1 -c
+
+6. One question that arises in scheduling is which end of a queue to
+add a job that just finished I/O; the -I flag changes this behavior
+for this scheduling simulator. Play around with some workloads
+and see if you can see the effect of this flag.
+: ./mlfq.py -l 0,200,0:100,50,1:100,50,1 -n 3 -q 2 -c -S -i 1 -B 10 -I
+Turnaround time for interactive jobs are shorter when iobump is turned on.
