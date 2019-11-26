@@ -1,0 +1,121 @@
+* DONE Compute the solutions for simulations with 3 jobs and random seeds
+  CLOSED: [2019-11-26 Tue 21:30]
+of 1, 2, and 3.
+
+| time | Job 0 | 1 | 2 | Random |  % |
+|------+-------+---+---+--------+----|
+|    0 |       |   | 3 | 651593 | 26 |
+|    1 |     0 |   |   | 788724 | 54 |
+|    2 |       | 6 |   |  93859 | 19 |
+|    3 |       |   | 2 |  28347 | 57 |
+|    4 |       |   | 1 | 835765 | 37 |
+|    5 |       |   | 0 | 432767 | 68 |
+|    6 |       | 5 |   | 762280 | 37 |
+|    7 |       | 4 |   |   2106 | 36 |
+|    8 |       | 3 |   | 445387 | 61 |
+|    9 |       | 2 |   | 721540 |  7 |
+|   10 |       | 1 |   | 228762 | 27 |
+|   11 |       | 0 |   | 945271 | 40 |
+#+TBLFM: $6=$5%(25+44)
+
+Seed 2
+| Time | J0 | J1 | J2 | Random |   % |
+|------+----+----+----+--------+-----|
+|    0 |    |    |  5 | 605944 |  98 |
+|    1 |  8 |    |    | 606802 |  29 |
+|    2 |  7 |    |    | 581204 |  78 |
+|    3 |    |    |  4 | 158383 |  72 |
+|    4 |  6 |    |    | 430670 |  27 |
+|    5 |    |  7 |    | 393532 |  72 |
+|    6 |  5 |    |    | 723012 |  55 |
+|    7 |    |    |  3 | 994820 |  46 |
+|    8 |  4 |    |    | 949396 |  45 |
+|    9 |  3 |    |    | 544177 |  28 |
+|   10 |  2 |    |    | 444854 | 100 |
+|   11 |    |  6 |    | 268241 |  29 |
+|   12 |  1 |    |    |  35924 |  80 |
+|   13 |  0 |    |    |  27444 |  46 |
+|   14 |    |  5 |    | 464894 |  55 |
+|   15 |    |    |  2 | 318465 |  92 |
+|   16 |    |  4 |    | 380015 |  48 |
+|   17 |    |  3 |    | 891790 |  16 |
+|   18 |    |  2 |    | 525753 |  41 |
+|   19 |    |    |  1 | 560510 |  87 |
+|   20 |    |  1 |    | 236123 |  47 |
+|   21 |    |  0 |    |  23858 |  65 |
+|   22 |    |    | 0  | 325143 |  75 | 
+#+TBLFM: $6=$5%(73+30)
+
+Seed 3
+| Time | J0 | J1 | J2 | Random |  % |
+|------+----+----+----+--------+----|
+|    0 |    |  2 |    |  13168 | 28 |
+|    1 |    |  1 |    | 837469 | 49 |
+|    2 |  1 |    |    | 259354 | 34 |
+|    3 |    |  0 |    | 234331 | 31 |
+|    4 |  0 |    |    | 995645 |  5 |
+|    5 |    |    | 5  | 470263 | 43 |
+|    6 |    |    | 4  | 836462 |  2 |
+|    7 |    |    | 3  | 476353 | 13 |
+|    8 |    |    | 2  | 639068 |  8 |
+|    9 |    |    | 1  | 150616 | 16 |
+|   10 |    |    | 0  | 634861 |  1 |
+#+TBLFM: $6=$5%(54+6)  
+
+* DONE Now run with two specific jobs: each of length 10, but one (job 0)
+  CLOSED: [2019-11-26 Tue 21:35]
+with just 1 ticket and the other (job 1) with 100 (e.g., -l 10:1,10:100).
+What happens when the number of tickets is so imbalanced? Will
+job 0 ever run before job 1 completes? How often? In general, what
+does such a ticket imbalance do to the behavior of lottery schedul-
+ing? 
+
+job 1 is starved till job 0 finishes.
+* DONE When running with two jobs of length 100 and equal ticket alloca-
+  CLOSED: [2019-11-26 Tue 21:38]
+tions of 100 (-l 100:100,100:100), how unfair is the scheduler?
+Run with some different random seeds to determine the (probabilis-
+tic) answer; let unfairness be determined by how much earlier one
+job finishes than the other.
+
+| seed | J0 finish time | J1 finish time |     J0/J1 |
+|------+----------------+----------------+-----------|
+|    0 |            192 |            200 |      0.96 |
+|    1 |            196 |            200 |      0.98 |
+|    2 |            200 |            190 | 1.0526316 |
+#+TBLFM: $4=$2/$3
+
+It is quite fair
+* DONE How does your answer to the previous question change as the quan-
+  CLOSED: [2019-11-26 Tue 21:41]
+tum size (-q) gets larger?
+
+python lottery.py -l 1000:100,1000:100 -c -s x
+| seed | J0 finish time | J1 finish time |     J0/J1 |
+|------+----------------+----------------+-----------|
+|    0 |           1942 |           2000 |     0.971 |
+|    1 |           2000 |           1903 | 1.0509721 |
+|    2 |           2000 |           1967 | 1.0167768 |
+#+TBLFM: $4=$2/$3
+
+The fairness index is closer to 1, compared to length 100.
+* DONE Can you make a version of the graph that is found in the chapter?
+  CLOSED: [2019-11-26 Tue 22:12]
+What else would be worth exploring? How would the graph look
+with a stride scheduler?
+(local-set-key "\C-cg" 'org-plot/gnuplot)
+
+python lottery.py -l 800:100,800:100 -c -s 0
+| Length |   J0 |   J1 |  J0/J1 |
+|--------+------+------+--------|
+|     10 |   20 |   15 |   0.75 |
+|     25 |   50 |   44 |   0.88 |
+|     50 |  100 |   94 |   0.94 |
+|    100 |  200 |  192 |   0.96 |
+|    200 |  400 |  380 |   0.95 |
+|    400 |  800 |  778 | 0.9725 |
+|    800 | 1600 | 1560 |  0.975 |
+#+TBLFM: $4=$3/$2
+
+For two jobs of the same stride, Stride scheduler will make them finish one after another. It is deterministic. 
+
